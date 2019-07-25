@@ -20,9 +20,6 @@ luids = {} #secrets per-luid (logon session) in txt format
 domains = {}
 kerberos = {}
 
-last_refresh_time = None
-refresh_needed = False
-refresh_interval = 30
 first_run = True
 
 import_failed = None
@@ -67,7 +64,8 @@ try:
 	
 except Exception as e:
 	import_failed = True
-	traceback.print_exc()
+	if VmmPyPlugin_fPrintV:
+		traceback.print_exc()
 	import_error_text = import_error_text_template % traceback.format_exc()
 	pass
 	
@@ -90,7 +88,6 @@ def process_lsass():
 	global luids
 	global domains
 	global kerberos
-	global last_refresh_time
 	global parsing_error_text
 	global parsing_failed
 	
@@ -135,12 +132,12 @@ def process_lsass():
 				
 			domains[domain][user][str(luid)] = str(mimi.logon_sessions[luid])
 		
-		last_refresh_time = datetime.datetime.utcnow()
 		parsing_failed = False
 			
 	except Exception as e:
 		parsing_failed = True
-		traceback.print_exc()
+		if VmmPyPlugin_fPrintV:
+			traceback.print_exc()
 		parsing_error_text = parsing_error_template % (basic_info, traceback.format_exc()) 
 		pass
 		
@@ -164,7 +161,8 @@ def ReadLuid(pid, file_name, file_attr, bytes_length, bytes_offset):
 		return luids[luid].encode()[bytes_offset:bytes_offset+bytes_length]
 	
 	except Exception as e:
-		traceback.print_exc()
+		if VmmPyPlugin_fPrintV:
+			traceback.print_exc()
 		return None
 		
 def ReadKerberos(pid, file_name, file_attr, bytes_length, bytes_offset):
@@ -177,7 +175,8 @@ def ReadKerberos(pid, file_name, file_attr, bytes_length, bytes_offset):
 		return data[bytes_offset:bytes_offset+bytes_length]
 		
 	except Exception as e:
-		traceback.print_exc()
+		if VmmPyPlugin_fPrintV:
+			traceback.print_exc()
 		return None
 		
 def ReadErrors(pid, file_name, file_attr, bytes_length, bytes_offset):
@@ -189,7 +188,8 @@ def ReadErrors(pid, file_name, file_attr, bytes_length, bytes_offset):
 			return parsing_error_text.encode()[bytes_offset:bytes_offset+bytes_length]
 			
 	except Exception as e:
-		traceback.print_exc()
+		if VmmPyPlugin_fPrintV:
+			traceback.print_exc()
 		return None	
 
 def List(pid, path):
@@ -225,10 +225,6 @@ def List(pid, path):
 			return result
 		
 
-		if (datetime.datetime.utcnow() - last_refresh_time).total_seconds() > refresh_interval and refresh_needed == True:
-			# invoking function that processes the lsass.exe
-			process_lsass()
-		
 		if path == 'secrets':
 			result = {
 				'all_results.json': {'size': len(all_secrets), 'read': ReadAllResults, 'write': None},
@@ -280,23 +276,21 @@ def List(pid, path):
 			return result
 	
 	except Exception as e:
-		traceback.print_exc()
+		if VmmPyPlugin_fPrintV:
+			traceback.print_exc()
 		return None
 
 
-def Close():
-	# Nothing to clean up here for this plugin -> do nothing!
-	pass
+def Notify(fEvent, bytesData):
+	if fEvent == VMMPY_PLUGIN_EVENT_TOTALREFRESH and not import_failed and not parsing_failed:
+		global first_run
+		first_run = True
 
 
 def Initialize(target_system, target_memorymodel):
-	global refresh_needed
 	# Check that the operating system is 32-bit or 64-bit Windows. If it's not
 	# then raise an exception to terminate loading of this module.
 	if target_system != VMMPY_SYSTEM_WINDOWS_X64 and target_system != VMMPY_SYSTEM_WINDOWS_X86:
 		raise RuntimeError("Only Windows is supported by the pym_pypykatz module.")
-	
-	refresh_needed = bool(int(VmmPy_ConfigGet(VMMPY_OPT_CONFIG_IS_REFRESH_ENABLED)))
-	
 	VmmPyPlugin_FileRegisterDirectory(None, 'secrets', List)
 	

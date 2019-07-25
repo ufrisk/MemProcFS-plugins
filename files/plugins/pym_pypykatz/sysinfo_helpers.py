@@ -67,31 +67,3 @@ def PEGetFileTime(pid, module):
     # Parse the PE file_header struct.
     struct_file_header = pestruct.IMAGE_FILE_HEADER(mz_stream)
     return struct_file_header.TimeDateStamp
-
-def PEGetVersionEx(pid, module):
-    modinfo = VmmPy_ProcessGetModuleFromName(pid, module)
-    moddir = VmmPy_ProcessGetDirectories(pid, module)[2]
-    if moddir['size'] > 0x4000:
-        raise Exception('.rsrc size')
-    data = VmmPy_MemRead(pid, modinfo['va'] + moddir['offset'], moddir['size'])
-    i = data.find(bytes('VS_VERSION_INFO', 'utf-16le'))
-    if i == -1:
-        raise Exception('.rsrc VS_VERSION_INFO')
-    i = data.find(bytes('FileVersion', 'utf-16le'), i)
-    if i == -1:
-        raise Exception('.rsrc FileVersion')
-    for s in str(data[i+22:i+200], 'utf-16le').split(chr(0)):
-        if len(s) > 0:
-            return s.split()[0]
-    raise Exception('.rsrc FileVersion not found')
-
-def PEGetVersion(pid, module):
-    modules = ['kernel32.dll', 'msasn1.dll', 'bcrypt.dll']
-    modules.insert(0, module)
-	
-    for mod in modules:
-        try:
-            return PEGetVersionEx(pid, mod)
-        except:
-            pass
-    raise Exception('.rsrc FileVersion not found')

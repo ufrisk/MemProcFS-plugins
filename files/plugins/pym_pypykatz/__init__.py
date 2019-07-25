@@ -1,9 +1,9 @@
 from plugins.pym_pypykatz.pym_pypykatz import (
 	Initialize,
-	Close,
+    Notify,
 )
 
 __all__ = [
 	"Initialize",
-	"Close",
+    "Notify",
 ]

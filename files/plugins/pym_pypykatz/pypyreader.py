@@ -115,15 +115,12 @@ class MemProcFsReader:
 		self.sysinfo = KatzSystemInfo()
 
 		#print('[+] Getting BuildNumer')
-		version = PEGetVersion(self.process_pid, self.process_name)
-		#print(version)
-		self.sysinfo.buildnumber = int(version.split('.')[2]) #10.0.16299.755 == <major>.<minor>.<buildnumber>
+		self.sysinfo.buildnumber = VmmPy_ConfigGet(VMMDLL_OPT_WIN_VERSION_BUILD)
 		#print('[+] Found BuildNumber %s' % self.sysinfo.buildnumber)
 		
 		#print('[+] Getting msv_dll_timestamp')
 		self.sysinfo.msv_dll_timestamp = int(PEGetFileTime(self.process_pid, self.process_name))
 		#print('[+] Found msv_dll_timestamp %s' % self.sysinfo.msv_dll_timestamp)
-		
 		
 		#print('[+] Getting arch')		
 		val = VmmPy_ConfigGet(VMMPY_OPT_CORE_SYSTEM)

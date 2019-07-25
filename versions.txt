@@ -1,2 +1,2 @@
 pluginupdater 1.0.0
-pypykatz 1.0.0
+pypykatz 1.1.0
