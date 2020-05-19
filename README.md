@@ -15,7 +15,7 @@ _pypykatz_ for MemProcFS exposes mimikatz functionality in the folder `/py/secre
 
 #### Installation instructions:
 1) Ensure MemProcFS supported version of 64-bit Python for Windows is on the system path (or specify in `-pythonpath` option when starting MemProcFS). NB! embedded Python will not work with _pypykatz_ since it requires access to Python pip installed packages.
-2) Install _pypykatz_ pip package, in correct python environment, by running `pip install pypykatz`.
+2) Install _pypykatz_ pip package, in correct python environment, by running `pip install dissect.cstruct pypykatz`.
 3) Copy the _pypykatz_ for _MemProcFS_ plugin by copying all files from [`/files/plugins/pym_pypykatz`](https://github.com/ufrisk/MemProcFS-plugins/tree/master/files/plugins/pym_pypykatz) to corresponding folder in MemProcFS - overwriting any existing files there.
 4) Start MemProcFS.
 
@@ -34,4 +34,4 @@ _regsecrets_ for MemProcFS exposes mimikatz functionality in the folder `/py/reg
 3) Copy the _pyregsecrets_ for _MemProcFS_ plugin by copying all files from [`/files/plugins/pym_regsecrets`](https://github.com/ufrisk/MemProcFS-plugins/tree/master/files/plugins/pym_regsecrets) to corresponding folder in MemProcFS - overwriting any existing files there.
 4) Start MemProcFS.
 
-#### Last updated: 2019-12-19
+#### Last updated: 2020-05-19
