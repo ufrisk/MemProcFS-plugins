@@ -19,6 +19,8 @@ _pypykatz_ for MemProcFS exposes mimikatz functionality in the folder `/py/secre
 3) Copy the _pypykatz_ for _MemProcFS_ plugin by copying all files from [`/files/plugins/pym_pypykatz`](https://github.com/ufrisk/MemProcFS-plugins/tree/master/files/plugins/pym_pypykatz) to corresponding folder in MemProcFS - overwriting any existing files there.
 4) Start MemProcFS.
 
+#### Last updated: 2021-01-11
+
 ## pypykatz regsecrets
 
 #### Author:
@@ -34,4 +36,4 @@ _regsecrets_ for MemProcFS exposes mimikatz functionality in the folder `/py/reg
 3) Copy the _pyregsecrets_ for _MemProcFS_ plugin by copying all files from [`/files/plugins/pym_regsecrets`](https://github.com/ufrisk/MemProcFS-plugins/tree/master/files/plugins/pym_regsecrets) to corresponding folder in MemProcFS - overwriting any existing files there.
 4) Start MemProcFS.
 
-#### Last updated: 2020-05-19
+#### Last updated: 2021-01-11

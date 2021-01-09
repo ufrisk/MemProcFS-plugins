@@ -9,7 +9,7 @@
 # Author: Tamas Jos (@skelsec), info@skelsec.com
 #
 # adaptation to MemProcFS plugin by:
-# (c) Ulf Frisk, 2019
+# (c) Ulf Frisk, 2019-2021
 # Author: Ulf Frisk (@UlfFrisk), pcileech@frizk.net
 #
 
@@ -182,7 +182,7 @@ def parse_reg_catch():
 		
 
 
-def ReadResultFile(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadResultFile(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	"""
 	reads the all_results data as file on the virtual FS
 	"""
@@ -204,7 +204,7 @@ def ReadResultFile(pid, file_name, file_attr, bytes_length, bytes_offset):
 
 
 
-def ReadErrors(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadErrors(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	try:
 			
 		if file_name == 'import_error.txt':

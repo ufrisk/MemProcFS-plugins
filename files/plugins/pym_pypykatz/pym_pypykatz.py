@@ -142,14 +142,14 @@ def process_lsass():
 		pass
 		
 	
-def ReadAllResults(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadAllResults(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	"""
 	reads the all_results data as file on the virtual FS
 	"""
 	
 	return all_secrets[bytes_offset:bytes_offset+bytes_length].encode()
 
-def ReadLuid(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadLuid(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	"""
 	reads the secrets for a specific luid data as file on the virtual FS
 	"""
@@ -165,7 +165,7 @@ def ReadLuid(pid, file_name, file_attr, bytes_length, bytes_offset):
 			traceback.print_exc()
 		return None
 		
-def ReadKerberos(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadKerberos(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	try:
 		
 		t = file_name.rsplit('.', 1)[0]
@@ -179,7 +179,7 @@ def ReadKerberos(pid, file_name, file_attr, bytes_length, bytes_offset):
 			traceback.print_exc()
 		return None
 		
-def ReadErrors(pid, file_name, file_attr, bytes_length, bytes_offset):
+def ReadErrors(pid, file_path, file_name, file_attr, bytes_length, bytes_offset):
 	try:
 			
 		if file_name == 'import_error.txt':
