@@ -1,2 +1,2 @@
-pypykatz 1.2.0
-regsecrets 1.1.0
+pypykatz 1.3.0
+regsecrets 1.2.0

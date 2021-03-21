@@ -8,7 +8,7 @@
 # Author: Tamas Jos (@skelsec), info@skelsec.com
 #
 
-from vmmpy import *
+import memprocfs
 from vmmpyplugin import *
 import json
 import traceback
@@ -282,7 +282,7 @@ def List(pid, path):
 
 
 def Notify(fEvent, bytesData):
-	if fEvent == VMMPY_PLUGIN_EVENT_TOTALREFRESH and not import_failed and not parsing_failed:
+	if fEvent == memprocfs.PLUGIN_EVENT_TOTALREFRESH and not import_failed and not parsing_failed:
 		global first_run
 		first_run = True
 
@@ -290,7 +290,7 @@ def Notify(fEvent, bytesData):
 def Initialize(target_system, target_memorymodel):
 	# Check that the operating system is 32-bit or 64-bit Windows. If it's not
 	# then raise an exception to terminate loading of this module.
-	if target_system != VMMPY_SYSTEM_WINDOWS_X64 and target_system != VMMPY_SYSTEM_WINDOWS_X86:
+	if target_system != memprocfs.SYSTEM_WINDOWS_X64 and target_system != memprocfs.SYSTEM_WINDOWS_X86:
 		raise RuntimeError("Only Windows is supported by the pym_pypykatz module.")
 	VmmPyPlugin_FileRegisterDirectory(None, 'secrets', List)
 	

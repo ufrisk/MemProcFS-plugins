@@ -13,7 +13,7 @@
 # Author: Ulf Frisk (@UlfFrisk), pcileech@frizk.net
 #
 
-from vmmpy import *
+import memprocfs
 from vmmpyplugin import *
 import traceback
 
@@ -76,8 +76,8 @@ class MemProcFS_RegReader:
 	This class provides buffer-like reader interface which can be delegated to AIOWinreg's HIVE classes.
 	Emulates reading and seeking capablities of a buffer but actually calling the underlying MemProcFS API. 
 	"""
-	def __init__(self, va_hive):
-		self.va_hive = va_hive
+	def __init__(self, hive):
+		self.hive = hive
 		self.position = 0
 		self.firstread = True
 
@@ -87,7 +87,7 @@ class MemProcFS_RegReader:
 		elif count == 0:
 			return None
 		
-		data = VmmPy_WinReg_HiveRead(self.va_hive, self.position, count, flags = 0)
+		data = self.hive.memory.read(self.position, count, 0)
 		self.position += count
 		return data
 	
@@ -102,27 +102,27 @@ class MemProcFS_RegReader:
 			raise Exception('Cant seek from the end!')
 
 def list_hives():
-	for x in VmmPy_WinReg_HiveList():
+	for x in vmm.reg_hive_list():
 		yield x
 
 
 
-def get_hive_va(hive_name, hive_name_short):
+def get_hive(hive_name, hive_name_short):
 	for hiveinfo in list_hives():
-		if 'name' in hiveinfo and hiveinfo['name'].endswith(hive_name):
-			return hiveinfo['va_hive']
+		if hiveinfo.name.endswith(hive_name):
+			return hiveinfo
 	for hiveinfo in list_hives():
-		if 'name' in hiveinfo and hive_name_short in hiveinfo['name']:
-			return hiveinfo['va_hive']
+		if hive_name_short in hiveinfo.name:
+			return hiveinfo
 	return None
 
 
 
 def create_hive(hive_name, hive_name_short):
-	hive_va = get_hive_va(hive_name, hive_name_short)
-	reader = MemProcFS_RegReader(hive_va)
+	hive = get_hive(hive_name, hive_name_short)
+	reader = MemProcFS_RegReader(hive)
 	hroot = NTRegistryHbin.read(reader)
-	reader = MemProcFS_RegReader(hive_va)
+	reader = MemProcFS_RegReader(hive)
 	return AIOWinRegHive(reader, hroot, is_file = False)
 
 
@@ -272,7 +272,7 @@ def List(pid, path):
 
 
 def Notify(fEvent, bytesData):
-	if fEvent == VMMPY_PLUGIN_EVENT_TOTALREFRESH and not import_failed and not parsing_failed:
+	if fEvent == memprocfs.PLUGIN_EVENT_TOTALREFRESH and not import_failed and not parsing_failed:
 		global is_initialized
 		is_initialized = False
 
@@ -281,6 +281,6 @@ def Notify(fEvent, bytesData):
 def Initialize(target_system, target_memorymodel):
 	# Check that the operating system is 32-bit or 64-bit Windows. If it's not
 	# then raise an exception to terminate loading of this module.
-	if target_system != VMMPY_SYSTEM_WINDOWS_X64 and target_system != VMMPY_SYSTEM_WINDOWS_X86:
+	if target_system != memprocfs.SYSTEM_WINDOWS_X64 and target_system != memprocfs.SYSTEM_WINDOWS_X86:
 		raise RuntimeError("Only Windows is supported by the pym_regsecrets module.")
 	VmmPyPlugin_FileRegisterDirectory(None, 'regsecrets', List)

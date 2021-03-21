@@ -5,13 +5,13 @@
 #
 # https://github.com/ufrisk/
 #
-# (c) Ulf Frisk, 2019
+# (c) Ulf Frisk, 2019-2021
 # Author: Ulf Frisk, pcileech@frizk.net
 #
 
 from io import BytesIO
 from dissect import cstruct
-from vmmpy import *
+import memprocfs
 
 PE_STRUCT_DEFINITIONS = """
     #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES 16
@@ -49,9 +49,9 @@ PE_STRUCT_DEFINITIONS = """
     } IMAGE_FILE_HEADER;
 """
 
-def PEGetFileTime(pid, module):
-    mz_va = VmmPy_ProcessGetModuleFromName(pid, module)['va']
-    mz_bytes = VmmPy_MemRead(pid, mz_va, 0x1000)
+def PEGetFileTime(process, module):
+    mz_va = process.module(module).base
+    mz_bytes = process.memory.read(mz_va, 0x1000)
     mz_stream = BytesIO(mz_bytes)
     # Set up dissect.cstruct
     pestruct = cstruct.cstruct()

@@ -11,7 +11,8 @@
 from pypykatz.commons.common import KatzSystemArchitecture, KatzSystemInfo
 from .sysinfo_helpers import *
 
-from vmmpy import *
+import memprocfs
+from vmmpyplugin import *
 import copy
 
 class Module:
@@ -31,9 +32,9 @@ class Module:
 		
 	def parse(data, timestamp = None):
 		m = Module()
-		m.name = data['name']
-		m.baseaddress = data['va']
-		m.size = data['size']
+		m.name = data.name
+		m.baseaddress = data.base
+		m.size = data.image_size
 		m.endaddress = m.baseaddress + m.size
 		
 		m.timestamp = timestamp
@@ -50,7 +51,6 @@ class Page:
 		self.AllocationProtect  = None
 		self.RegionSize  = None
 		self.EndAddress = None
-		
 		self.data = None
 	
 	@staticmethod
@@ -74,7 +74,7 @@ class Page:
 		return p
 		
 	def read_data(self, pid):
-		self.data = VmmPy_MemRead(pid, self.BaseAddress, self.RegionSize)
+		self.data = vmm.process(pid).memory.read(self.BaseAddress, self.RegionSize)
 		
 	def inrange(self, addr):
 		return self.BaseAddress <= addr < self.EndAddress
@@ -82,7 +82,7 @@ class Page:
 	def search(self, pattern, pid):
 		if len(pattern) > self.RegionSize:
 			return []
-		data = VmmPy_MemRead(pid, self.BaseAddress, self.RegionSize)
+		data = vmm.process(pid).memory.read(self.BaseAddress, self.RegionSize)
 		fl = []
 		offset = 0
 		while len(data) > len(pattern):
@@ -104,7 +104,7 @@ class MemProcFsReader:
 		self.filename = filename
 		self.process_name = process_name
 		self.sysinfo = None
-		self.process_pid = None
+		self.process = None
 		self.current_position = None
 		self.modules = []
 		
@@ -115,16 +115,16 @@ class MemProcFsReader:
 		self.sysinfo = KatzSystemInfo()
 
 		#print('[+] Getting BuildNumer')
-		self.sysinfo.buildnumber = VmmPy_ConfigGet(VMMDLL_OPT_WIN_VERSION_BUILD)
+		self.sysinfo.buildnumber = vmm.get_config(memprocfs.OPT_WIN_VERSION_BUILD)
 		#print('[+] Found BuildNumber %s' % self.sysinfo.buildnumber)
 		
 		#print('[+] Getting msv_dll_timestamp')
-		self.sysinfo.msv_dll_timestamp = int(PEGetFileTime(self.process_pid, self.process_name))
+		self.sysinfo.msv_dll_timestamp = int(PEGetFileTime(self.process, self.process_name))
 		#print('[+] Found msv_dll_timestamp %s' % self.sysinfo.msv_dll_timestamp)
 		
 		#print('[+] Getting arch')		
-		val = VmmPy_ConfigGet(VMMPY_OPT_CORE_SYSTEM)
-		if val == VMMPY_SYSTEM_WINDOWS_X64:
+		val = vmm.get_config(memprocfs.OPT_CORE_SYSTEM)
+		if val == memprocfs.SYSTEM_WINDOWS_X64:
 			self.sysinfo.architecture = KatzSystemArchitecture.X64
 		else:
 			self.sysinfo.architecture = KatzSystemArchitecture.X86
@@ -139,17 +139,17 @@ class MemProcFsReader:
 			VmmPy_Initialize(["-device", self.filename,'-vv'])
 		
 		#print('[+] Searching LSASS')
-		self.process_pid = VmmPy_PidGetFromName(self.process_name)
-		#print('[+] Found LSASS on PID %s' % self.process_pid)
+		self.process = vmm.process(self.process_name)
+		#print('[+] Found LSASS on PID %s' % self.process.pid)
 		
 		self.get_sysinfo()
 		
 		#print('[+] Getting modules info')
-		for moduleinfo in VmmPy_ProcessGetModuleMap(self.process_pid):
+		for module in self.process.module_list():
 			#print('moduleinfo: %s' % str(moduleinfo))
-			m = Module.parse(moduleinfo)
+			m = Module.parse(module)
 			try:
-				for pageinfo in VmmPy_ProcessGetSections(self.process_pid, m.name):
+				for pageinfo in module.maps.sections():
 					#print('pageinfo: %s' % str(pageinfo))
 					m.pages.append(Page.parse(pageinfo, m))
 					
@@ -157,7 +157,7 @@ class MemProcFsReader:
 			except:
 				#module is paged out, hoping that it's not a module that is needed
 				pass
-				
+			
 		#print('[+] Got modules info')	
 			
 		
@@ -192,7 +192,7 @@ class MemProcFsReader:
 		"""
 		Searches for all occurrences of a pattern in the current memory segment, returns all occurrences as a list
 		"""
-		data = VmmPy_MemRead(self.process_pid, start, end - start)
+		data = self.process.memory.read(start, end - start)
 		pos = []
 		for p in MemProcFsReader.find_all_pattern(data, pattern):
 			pos.append( p + start)
@@ -242,7 +242,7 @@ class MemProcFsReader:
 		return data
 	
 	def read(self, size = -1):
-		data = VmmPy_MemRead(self.process_pid, self.current_position, size)
+		data = self.process.memory.read(self.current_position, size)
 		self.current_position += size
 		return data
 	
